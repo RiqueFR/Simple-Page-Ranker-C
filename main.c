@@ -83,7 +83,23 @@ int main(int argc, char *argv[]) {
     Graph *graph = init_graph(n_pages, pages);
     print_graph(graph);
 
+    int n_stop_words = 0;
+    while (fscanf(stopwords_file, "%s", name) == 1) n_stop_words++;
+    char *stop_words[n_stop_words];
+
+    rewind(stopwords_file);
+    for (i = 0; fscanf(stopwords_file, "%s", name) == 1; i++) {
+        stop_words[i] = strdup(name);
+    }
+
+    for (i = 0; i < n_stop_words; i++) {
+        printf("%s\n", stop_words[i]);
+    }
+
     //libera a memoria
+    for (int i = 0; i < n_stop_words; i++)
+        free(stop_words[i]);
+
     destroy_graph(graph);
     for (int i = 0; i < n_pages; i++)
         destroy_page(pages[i]);
