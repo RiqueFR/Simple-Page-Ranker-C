@@ -4,6 +4,7 @@
 
 #include "graph.h"
 #include "page.h"
+#include "pagerank.h"
 
 /**
  * Concatena a string dir e a string name para dir_to_write
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]) {
     }
 
     Graph *graph = init_graph(n_pages, pages);
-    print_graph(graph);
+    // print_graph(graph);
 
     int n_stop_words = 0;
     while (fscanf(stopwords_file, "%s", name) == 1) n_stop_words++;
@@ -92,10 +93,8 @@ int main(int argc, char *argv[]) {
         stop_words[i] = strdup(name);
     }
 
-    for (i = 0; i < n_stop_words; i++) {
-        printf("%s\n", stop_words[i]);
-    }
-
+    calc_PR(graph, pages);
+    //verificar_consultas(pages, "Maca abacate", n_pages);
     //libera a memoria
     for (int i = 0; i < n_stop_words; i++)
         free(stop_words[i]);

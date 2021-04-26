@@ -11,4 +11,8 @@ void print_graph(Graph* graph);
 
 void destroy_graph(Graph* graph);
 
+int get_n_nodes(Graph* graph);
+
+Page* get_page_graph(Graph* graph, int pos);
+
 #endif  //GRAPH_H

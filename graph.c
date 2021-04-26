@@ -6,7 +6,6 @@
 struct graph {
     Page** pages;
     int n_nodes;
-    int n_edges;
 };
 
 Graph* init_graph(int n_nodes, Page** pages) {
@@ -30,4 +29,12 @@ void print_graph(Graph* graph) {
 
 void destroy_graph(Graph* graph) {
     free(graph);
+}
+
+Page* get_page_graph(Graph* graph, int pos) {
+    return graph->pages[pos];
+}
+
+int get_n_nodes(Graph* graph) {
+    return graph->n_nodes;
 }
