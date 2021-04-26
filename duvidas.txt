@@ -1,0 +1,5 @@
+ - fazer leitura na main;
+ - fazer a função page_rank como uma biblioteca com .h, ou apenas um .c usando o nome extern
+ - fazer page_rank para cada busca ou no início com todas as páginas
+ - pode usar trie?
+ - palavras como "comporte-se", pode entrar?
