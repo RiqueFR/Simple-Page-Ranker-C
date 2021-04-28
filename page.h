@@ -1,6 +1,8 @@
 #ifndef PAGES_H
 #define PAGES_H
 
+#include "trie.h"
+
 typedef struct page Page;
 
 Page* init_page(char* nome);

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "wordlist.h"
+
 struct page {
     char* nome_pagina;
     int n;
@@ -106,35 +108,118 @@ for arquivos
 
     FALTA IMPLEMENTAR
 */
+
 void verificar_consultas(Page** page, char* consulta, int n_pages) {
     int v = strlen(consulta);
     char* a = strdup(consulta);
-    char str[n_pages];
-    char delim[] = " ";
+    int k = 1;
+    int str[n_pages];
     char temp[256];
+    char* word;
+    int i = 0;
 
-    char* ptr = strtok(a, delim);
-    while (ptr != NULL) {
-        for (int i = 0; i < n_pages; i++) {
-            FILE* arquivo = fopen(page[i]->nome_pagina, "r");
-            if (arquivo != NULL) {
-                while (arquivo && fgets(temp, sizeof(temp), arquivo)) {
-                    if (strstr(temp, ptr)) {
-                        str[i] = 1;
-                    } else {
-                        str[i] = 0;
-                    }
-                }
-            }
+    for (int i = 0; i < n_pages; i++) {
+        str[i] = 0;
+    }
+
+    word = strtok(a, " ");
+    Wordlist* wordlist = init_wordlist();
+    Wordlist* start = wordlist;
+
+    while (word != NULL) {
+        insert_wordlist(wordlist, word);
+        word = strtok(NULL, " ");
+    }
+
+    /**
+     * para cada arquivo:
+     *  flag = 0;
+     *  para cada palavra
+     *      if palavra no arquivo:
+     *          continue
+     *      else:
+     *          flag = 1
+     *          break
+     *  if flag == 0:
+     *      adiciono pagina vetor;
+     */
+    for (int i = 0; i < n_pages; i++) {
+        wordlist = start;
+
+        int has_all_words = 1;
+        Trie* head = getNewTrieNode();
+
+        FILE* arquivo = fopen(page[i]->nome_pagina, "r");
+        if (arquivo == NULL) {
+            printf("Arquivo não encontrado!\n");
+            exit(2);
+        }
+        while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
+            insert(head, temp);
         }
 
-        ptr = strtok(NULL, delim);
+        while (wordlist != NULL) {
+            word = get_word(wordlist);
+            if (search(head, word)) {
+                wordlist = get_next(wordlist);
+                continue;
+            } else {
+                has_all_words = 0;
+                break;
+            }
+        }
+        // printf(" - %d\n", has_all_words);
+        if (has_all_words == 1) {
+            str[i] = 1;
+        }
+
+        // while (ptr != NULL) {
+        //     for (int i = 0; i < n_pages; i++) {
+
+        //         FILE* arquivo = fopen(page[i]->nome_pagina, "r");
+
+        //         if (arquivo != NULL) {
+        //             //insert(Trie* head, char* str)
+
+        //             // search(Trie* head, char* str)
+
+        //             while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
+        //                 if (strstr(temp, ptr)) {
+        //                     str[i] += 1;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // printf("\nA palavra eh: %s \n", ptr);
+        // printf("Vetor esta assim: \n");
+        // for (int j = 0; j < n_pages; j++) {
+        //     printf("%d ", str[j]);
+        // }
+        // k++;
+        // ptr = strtok(NULL, delim);
+        deleteAllTrie(head);
     }
+    printf("\n");
     printf("paginas que tem as palavras %s sao: ", consulta);
     for (int i = 0; i < n_pages; i++) {
         if (str[i] == 1) {
             printf("%s ", page[i]->nome_pagina);
         }
     }
-    free(a);
+    printf("\n");
+    destroy_wordlist(start);
 }
+
+// if (i > 0) {
+//     while (arquivo && fgets(temp, sizeof(temp), arquivo)) {
+//         if (strstr(temp, ptr)) {
+//             if (str[i] == 1) {  // blz
+//                 str[i] = 1;
+//             } else {
+//                 str[i] = 0;
+//             }
+//         } else {
+//             str[i] = 0;
+//         }
+//     }
+// }
