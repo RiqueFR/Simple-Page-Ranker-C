@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     }
 
     calc_PR(graph, pages);
-    //verificar_consultas(pages, "Maca abacate", n_pages);
+    verificar_consultas(pages, "abacate ruim", n_pages);
     //libera a memoria
     for (int i = 0; i < n_stop_words; i++)
         free(stop_words[i]);
