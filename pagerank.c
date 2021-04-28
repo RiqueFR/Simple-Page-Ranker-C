@@ -17,7 +17,7 @@ static double sum_j_e_in_i(Page* page, Page** pages, double* PR_bef, int size) {
         }
         int n_links = get_n_links(j);
         if (n_links != 0)
-            soma += PR_bef[i] / n_links;
+            soma += PR_bef[i - 1] / n_links;
         else
             printf("MACACOOO\n");
     }
@@ -39,12 +39,12 @@ void calc_PR(Graph* graph, Page** pages) {
     int size = get_n_nodes(graph);
     double PRs[size];
     double PR_bef[size];
-    double Ek = 0;
+    double Ek = 1;
 
     for (int i = 0; i < size; i++) {
-        PR_bef[i] = 1 / size;
+        PR_bef[i] = 1.0 / size;
     }
-    while (Ek < 0.000001) {
+    while (Ek > 0.000001) {
         for (int i = 0; i < size; i++) {
             PRs[i] = (((1 - ALPHA) / size));
             Page* page = get_page_graph(graph, i);
@@ -52,8 +52,8 @@ void calc_PR(Graph* graph, Page** pages) {
             if (size_links == 0) {
                 PRs[i] += ALPHA * PR_bef[i];
             }
-            PRs[i] += ALPHA * sum_j_e_in_i(page, pages, PR_bef, size);
-            printf("%.6lf\n", PRs[i]);
+            double aux = sum_j_e_in_i(page, pages, PR_bef, size);
+            PRs[i] += ALPHA * aux;
         }
         Ek = calc_Ek(PRs, PR_bef, size);
         for (int i = 0; i < size; i++) {
