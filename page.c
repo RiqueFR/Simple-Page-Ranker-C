@@ -173,6 +173,8 @@ void verificar_consultas(Page** page, char* consulta, int n_pages) {
             str[i] = 1;
         }
 
+        deleteAllTrie(head);
+
         // while (ptr != NULL) {
         //     for (int i = 0; i < n_pages; i++) {
 
@@ -197,7 +199,7 @@ void verificar_consultas(Page** page, char* consulta, int n_pages) {
         // }
         // k++;
         // ptr = strtok(NULL, delim);
-        deleteAllTrie(head);
+        
     }
     printf("\n");
     printf("paginas que tem as palavras %s sao: ", consulta);
@@ -208,6 +210,7 @@ void verificar_consultas(Page** page, char* consulta, int n_pages) {
     }
     printf("\n");
     destroy_wordlist(start);
+    free(a);
 }
 
 // if (i > 0) {

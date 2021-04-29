@@ -145,9 +145,16 @@ int deletion(Trie** curr, char* str) {
 
 // Delete all trie
 void deleteAllTrie(Trie* curr) {
-    for (int i = 0; i < CHAR_SIZE; i++)
-        if (curr->character[i])
-            free(curr->character[i]);
+    if(curr->isLeaf == 0){
+        for (int i = 0; i < CHAR_SIZE; i++)
+            if (curr->character[i] != NULL)
+                deleteAllTrie(curr->character[i]);
+                // free(curr->character[i]);
+    }
+    
 
-    free(curr);
+    if(curr != NULL){
+        free(curr);
+    }
+    
 }
