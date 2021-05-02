@@ -15,4 +15,6 @@ int get_n_nodes(Graph* graph);
 
 Page* get_page_graph(Graph* graph, int pos);
 
+void calc_PR(Graph* graph, Page** pages);
+
 #endif  //GRAPH_H
