@@ -21,10 +21,16 @@ void insert_page_link(Page* page, Page* link);
 
 Page* search_link(Page* page, Page** pages, int* i, int n_pages);
 
+int compare_page_name(const void* a, const void* b);
+
+int compare_page_rank(const void* a, const void* b);
+
 void print_page(Page* page);
 
 void destroy_page(Page* page);
 
-void verificar_consultas(Page** page, char* consulta, int n_pages);
+Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* dir);
+
+Page* find_page(Page** pages, int size, char* name_page);
 
 #endif  //PAGES_H

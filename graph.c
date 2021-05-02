@@ -97,7 +97,8 @@ void calc_PR(Graph* graph, Page** pages) {
             PR_bef[i] = PRs[i];
         }
     }
+    //coloca os valores do PR na pagina
     for (int i = 0; i < size; i++) {
-        printf("%.6lf\n", PRs[i]);
+        set_page_rank(pages[i], PRs[i]);
     }
 }

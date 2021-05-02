@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "inputread.h"
 #include "wordlist.h"
 
 struct page {
@@ -13,12 +14,6 @@ struct page {
     Page** links;
     double page_rank;
 };
-/**Page:
- * name
- * n_links
- * Page **links
- * int n
-*/
 
 Page* init_page(char* nome) {
     Page* page = (Page*)malloc(sizeof(Page));
@@ -76,6 +71,43 @@ Page* search_link(Page* page, Page** pages, int* i, int n_pages) {
     return NULL;
 }
 
+int compare_page_name(const void* a, const void* b) {
+    /*
+    * Segundo a ordem alfabética retorna um valor:
+    * > 0 -> primeiro parametro maior que o segundo
+    * = 0 -> parametros iguais
+    * < 0 -> segundo parametro maior que o primeiro
+    */
+    Page* a1 = *(Page**)a;
+    Page* a2 = *(Page**)b;
+
+    return strcmp(get_name_page(a1), get_name_page(a2));
+}
+
+int compare_page_rank(const void* a, const void* b) {
+    /*
+    * Segundo a ordem alfabética retorna um valor:
+    * > 0 -> primeiro parametro maior que o segundo
+    * = 0 -> parametros iguais
+    * < 0 -> segundo parametro maior que o primeiro
+    */
+    Page* a1 = *(Page**)a;
+    Page* a2 = *(Page**)b;
+
+    if (a1 == NULL && a2) return 1;
+    if (a1 && a2 == NULL) return -1;
+    if (a1 == NULL && a2 == NULL) return 0;
+
+    double res = a1->page_rank - a2->page_rank;
+
+    if (res > 0)
+        return -1;
+    if (res < 0)
+        return 1;
+    else
+        return 0;
+}
+
 void print_page(Page* page) {
     if (!page) return;
     printf("%s -> ", page->nome_pagina);
@@ -83,6 +115,7 @@ void print_page(Page* page) {
         printf(" %s", page->links[i]->nome_pagina);
     }
     printf("\n");
+    printf("page_rank: %lf\n", page->page_rank);
 }
 
 void destroy_page(Page* page) {
@@ -93,23 +126,7 @@ void destroy_page(Page* page) {
     free(page);
 }
 
-/*
-busca palavra(palavra, paginas)
-
-verifica arquivos(frase)
-int flag
-for arquivos
-    forpalavras
-        flag = busca palavra
-        break
-    if flag
-        add pagina vetor
-
-
-    FALTA IMPLEMENTAR
-*/
-
-void verificar_consultas(Page** page, char* consulta, int n_pages) {
+Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* default_directory) {
     int v = strlen(consulta);
     char* a = strdup(consulta);
     int k = 1;
@@ -131,25 +148,15 @@ void verificar_consultas(Page** page, char* consulta, int n_pages) {
         word = strtok(NULL, " ");
     }
 
-    /**
-     * para cada arquivo:
-     *  flag = 0;
-     *  para cada palavra
-     *      if palavra no arquivo:
-     *          continue
-     *      else:
-     *          flag = 1
-     *          break
-     *  if flag == 0:
-     *      adiciono pagina vetor;
-     */
     for (int i = 0; i < n_pages; i++) {
         wordlist = start;
 
         int has_all_words = 1;
         Trie* head = getNewTrieNode();
 
-        FILE* arquivo = fopen(page[i]->nome_pagina, "r");
+        char* directory = file_name(default_directory, page[i]->nome_pagina, 1);
+        FILE* arquivo = fopen(directory, "r");
+        free(directory);
         if (arquivo == NULL) {
             printf("Arquivo não encontrado!\n");
             exit(2);
@@ -168,61 +175,39 @@ void verificar_consultas(Page** page, char* consulta, int n_pages) {
                 break;
             }
         }
-        // printf(" - %d\n", has_all_words);
         if (has_all_words == 1) {
             str[i] = 1;
         }
-
+        fclose(arquivo);
         deleteAllTrie(head);
-
-        // while (ptr != NULL) {
-        //     for (int i = 0; i < n_pages; i++) {
-
-        //         FILE* arquivo = fopen(page[i]->nome_pagina, "r");
-
-        //         if (arquivo != NULL) {
-        //             //insert(Trie* head, char* str)
-
-        //             // search(Trie* head, char* str)
-
-        //             while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-        //                 if (strstr(temp, ptr)) {
-        //                     str[i] += 1;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // printf("\nA palavra eh: %s \n", ptr);
-        // printf("Vetor esta assim: \n");
-        // for (int j = 0; j < n_pages; j++) {
-        //     printf("%d ", str[j]);
-        // }
-        // k++;
-        // ptr = strtok(NULL, delim);
-        
     }
-    printf("\n");
-    printf("paginas que tem as palavras %s sao: ", consulta);
-    for (int i = 0; i < n_pages; i++) {
-        if (str[i] == 1) {
-            printf("%s ", page[i]->nome_pagina);
-        }
-    }
-    printf("\n");
     destroy_wordlist(start);
     free(a);
+    Page** pages_verified = (Page**)malloc(sizeof(Page*) * n_pages);
+    for (int i = 0; i < n_pages; i++) {
+        if (str[i] == 1) {
+            pages_verified[i] = page[i];
+        } else {
+            pages_verified[i] = NULL;
+        }
+    }
+    return pages_verified;
 }
 
-// if (i > 0) {
-//     while (arquivo && fgets(temp, sizeof(temp), arquivo)) {
-//         if (strstr(temp, ptr)) {
-//             if (str[i] == 1) {  // blz
-//                 str[i] = 1;
-//             } else {
-//                 str[i] = 0;
-//             }
-//         } else {
-//             str[i] = 0;
-//         }
-//     }
-// }
+Page* find_page(Page** pages, int size, char* name_page) {
+    int hi = size, lo = 0;
+    int cmp;
+
+    do {
+        cmp = strcmp(name_page, get_name_page(pages[(hi + lo) / 2]));
+
+        if (cmp == 0) break;
+
+        if (strcmp(name_page, get_name_page(pages[(hi + lo) / 2])) > 0)
+            lo = (hi + lo) / 2;
+        else
+            hi = (hi + lo) / 2;
+    } while (cmp != 0);
+
+    return pages[(hi + lo) / 2];
+}

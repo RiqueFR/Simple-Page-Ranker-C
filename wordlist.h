@@ -52,16 +52,6 @@ Wordlist* get_next(Wordlist* wordlist);
 void insert_wordlist(Wordlist* wordlist, char* word);
 
 /**
- * Libera memoria alocada do item da lista de Wordlist.
- * 
- * @param {Wordlist* wordlist} lista de Wordlist que memoria sera liberada
- * 
- * @pre lista de Wordlist inicializada com pelo menos um item inicializado.
- * @post item eh liberado.
- */
-void destroy_wordlist(Wordlist* wordlist);
-
-/**
  * Libera memoria alocada da lista de de Wordlist
  * 
  * @param {Wordlist* wordlist} lista de Wordlist que memoria sera liberada
@@ -69,6 +59,6 @@ void destroy_wordlist(Wordlist* wordlist);
  * @pre lista de Wordlist inicializada
  * @post memoria alocada por lista de Wordlist liberada
  */
-void destroy_wordlist_list(Wordlist* wordlists);
+void destroy_wordlist(Wordlist* wordlist);
 
 #endif
