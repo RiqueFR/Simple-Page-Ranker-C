@@ -83,15 +83,6 @@ int search(Trie* head, char* str) {
     return curr->isLeaf;
 }
 
-// Delete all trie
-void deleteAllTrie(Trie* curr) {
-    for (int i = 0; i < CHAR_SIZE; i++)
-        if (curr->character[i])
-            free(curr->character[i]);
-
-    free(curr);
-}
-
 // Returns 1 if a given Trie node has any children
 int hasChildren(Trie* curr) {
     for (int i = 0; i < CHAR_SIZE; i++) {
@@ -150,4 +141,17 @@ int deletion(Trie** curr, char* str) {
     }
 
     return 0;
+}
+
+// Delete all trie
+void deleteAllTrie(Trie* curr) {
+    //Free the trienode sequence
+    for (int i = 0; i < CHAR_SIZE; i++) {
+        if (curr->character[i] != NULL) {
+            deleteAllTrie(curr->character[i]);
+        } else {
+            continue;
+        }
+    }
+    free(curr);
 }

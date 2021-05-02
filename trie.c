@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 // Define the character size
-#define CHAR_SIZE 26
+#define CHAR_SIZE 100
 
 // Data structure to store a Trie node
 struct trie {
@@ -145,16 +145,13 @@ int deletion(Trie** curr, char* str) {
 
 // Delete all trie
 void deleteAllTrie(Trie* curr) {
-    if(curr->isLeaf == 0){
-        for (int i = 0; i < CHAR_SIZE; i++)
-            if (curr->character[i] != NULL)
-                deleteAllTrie(curr->character[i]);
-                // free(curr->character[i]);
+    //Free the trienode sequence
+    for (int i = 0; i < CHAR_SIZE; i++) {
+        if (curr->character[i] != NULL) {
+            deleteAllTrie(curr->character[i]);
+        } else {
+            continue;
+        }
     }
-    
-
-    if(curr != NULL){
-        free(curr);
-    }
-    
+    free(curr);
 }
