@@ -1,5 +1,5 @@
 compile:
-	gcc -o trab3 main.c graph.c page.c trie.c wordlist.c inputread.c -lm
+	gcc -o trab3 main.c graph.c page.c tst.c wordlist.c inputread.c -lm
 
 run:
 	./trab3 ./entrada/
