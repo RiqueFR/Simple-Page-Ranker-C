@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "inputread.h"
+#include "tst.h"
 #include "wordlist.h"
 
 struct page {
@@ -152,7 +153,7 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
         wordlist = start;
 
         int has_all_words = 1;
-        Trie* head = getNewTrieNode();
+        Tst* head = init_empty_tst();
 
         char* directory = file_name(default_directory, page[i]->nome_pagina, 1);
         FILE* arquivo = fopen(directory, "r");
@@ -162,12 +163,12 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
             exit(2);
         }
         while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-            insert(head, temp);
+            head = insert_tst(head, temp);
         }
 
         while (wordlist != NULL) {
             word = get_word(wordlist);
-            if (search(head, word)) {
+            if (get_word_tst(head, word)) {
                 wordlist = get_next(wordlist);
                 continue;
             } else {
@@ -179,7 +180,7 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
             str[i] = 1;
         }
         fclose(arquivo);
-        deleteAllTrie(head);
+        destroy_tst(head);
     }
     destroy_wordlist(start);
     free(a);

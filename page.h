@@ -1,7 +1,7 @@
 #ifndef PAGES_H
 #define PAGES_H
 
-#include "trie.h"
+#include "tst.h"
 
 typedef struct page Page;
 
