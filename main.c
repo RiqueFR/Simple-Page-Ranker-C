@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     char **stop_words = input_read_stopwords(dir, n_stop_words);
 
     calc_PR(graph, pages);
-    Page **pages_verified = verificar_consultas(pages, "ruim abacate", n_pages, dir);
+    Page **pages_verified = verificar_consultas(pages, "metodologias", n_pages, dir);
     qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
     int count = 0;
     for (int i = 0; i < n_pages; i++) {
