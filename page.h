@@ -1,8 +1,6 @@
 #ifndef PAGES_H
 #define PAGES_H
 
-#include "trie.h"
-
 typedef struct page Page;
 
 Page* init_page(char* nome);
@@ -29,8 +27,8 @@ void print_page(Page* page);
 
 void destroy_page(Page* page);
 
-Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* dir);
+Page** verificar_consultas(Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* dir);
 
-Page* find_page(Page** pages, int size, char* name_page);
+Page* find_page(Page** pages, int lo, int hi, char* name_page);
 
 #endif  //PAGES_H

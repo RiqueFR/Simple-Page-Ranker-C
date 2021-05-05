@@ -142,11 +142,11 @@ Graph *input_read_graph(char *dir, int n_pages, Page **pages) {
     char name_link[300];
     int i = 0;
     while (fscanf(graph_file, "%s %d", name, &size) == 2) {
-        Page *page = find_page(pages, n_pages, name);
+        Page *page = find_page(pages, 0, n_pages, name);
         set_n_links(page, size);
         for (int i = 0; i < size; i++) {
             fscanf(graph_file, "%s", name_link);
-            Page *link = find_page(pages, n_pages, name_link);
+            Page *link = find_page(pages, 0, n_pages, name_link);
             insert_page_link(page, link);
         }
     }

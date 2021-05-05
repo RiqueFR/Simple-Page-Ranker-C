@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "inputread.h"
+#include "rbt.h"
 #include "wordlist.h"
 
 struct page {
@@ -126,7 +127,27 @@ void destroy_page(Page* page) {
     free(page);
 }
 
-Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* default_directory) {
+static int binary_search(char** stopwords, int lo, int hi, char* word) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
+
+        // Se a palavra esta no meio da stopwords
+        if (strcasecmp(stopwords[mid], word) == 0)
+            return mid;
+
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(stopwords[mid], word) > 0)
+            return binary_search(stopwords, lo, mid - 1, word);
+
+        // caso contrario, so pode estar na esquerda
+        return binary_search(stopwords, mid + 1, hi, word);
+    }
+
+    // Se a palavra nao esta presente, retorna -1
+    return -1;
+}
+
+Page** verificar_consultas(Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
     int v = strlen(consulta);
     char* a = strdup(consulta);
     int k = 1;
@@ -141,46 +162,71 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
 
     word = strtok(a, " ");
     Wordlist* wordlist = init_wordlist();
-    Wordlist* start = wordlist;
 
     while (word != NULL) {
-        insert_wordlist(wordlist, word);
+        wordlist = insert_wordlist(wordlist, word);
         word = strtok(NULL, " ");
     }
+
+    Wordlist* start = wordlist;
 
     for (int i = 0; i < n_pages; i++) {
         wordlist = start;
 
-        int has_all_words = 1;
-        Trie* head = getNewTrieNode();
+        RBT* rbt = NULL;
+        int has_all_words = 0;
 
         char* directory = file_name(default_directory, page[i]->nome_pagina, 1);
         FILE* arquivo = fopen(directory, "r");
+        //         fseek(arquivo, 0, SEEK_END);
+        //         long a = ftell(arquivo);
+        //         printf("%ld\n", a);
+        //         fseek(arquivo, 0, SEEK_SET);
+
+        //         /* grab sufficient memory for the
+        // buffer to hold the text */
+        //         char* buffer = (char*)calloc(a, sizeof(char));
+
+        //         /* memory error */
+        //         if (buffer == NULL)
+        //             exit(1);
+
+        //         /* copy all the text into the buffer */
+        //         fread(buffer, sizeof(char), a, arquivo);
+        //         printf("%s\n", buffer);
+        //         free(buffer);
+
         free(directory);
         if (arquivo == NULL) {
             printf("Arquivo não encontrado!\n");
             exit(2);
         }
+
         while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-            insert(head, temp);
+            rbt = RBT_insert(rbt, temp);
         }
 
         while (wordlist != NULL) {
             word = get_word(wordlist);
-            if (search(head, word)) {
-                wordlist = get_next(wordlist);
-                continue;
-            } else {
-                has_all_words = 0;
-                break;
+            //verificar se esta na stopwords
+            //se a palavra atual for uma stopword, pula para proxima
+            if (binary_search(stopwords, 0, stopwords_size, word) == -1) {
+                if (search(rbt, word)) {
+                    has_all_words = 1;
+                } else {
+                    has_all_words = 0;
+                    break;
+                }
             }
+            wordlist = get_next(wordlist);
         }
         if (has_all_words == 1) {
             str[i] = 1;
         }
         fclose(arquivo);
-        deleteAllTrie(head);
+        RBT_delete(rbt);
     }
+
     destroy_wordlist(start);
     free(a);
     Page** pages_verified = (Page**)malloc(sizeof(Page*) * n_pages);
@@ -194,20 +240,22 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
     return pages_verified;
 }
 
-Page* find_page(Page** pages, int size, char* name_page) {
-    int hi = size, lo = 0;
-    int cmp;
+Page* find_page(Page** pages, int lo, int hi, char* name_page) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
 
-    do {
-        cmp = strcmp(name_page, get_name_page(pages[(hi + lo) / 2]));
+        // Se a pagina esta no meio das paginas
+        if (strcasecmp(get_name_page(pages[mid]), name_page) == 0)
+            return pages[mid];
 
-        if (cmp == 0) break;
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(get_name_page(pages[mid]), name_page) > 0)
+            return find_page(pages, lo, mid - 1, name_page);
 
-        if (strcmp(name_page, get_name_page(pages[(hi + lo) / 2])) > 0)
-            lo = (hi + lo) / 2;
-        else
-            hi = (hi + lo) / 2;
-    } while (cmp != 0);
+        // caso contrario, so pode estar na esquerda
+        return find_page(pages, mid + 1, hi, name_page);
+    }
 
-    return pages[(hi + lo) / 2];
+    // Se a pagina nao esta presente, retorna NULL
+    return NULL;
 }

@@ -49,7 +49,7 @@ Wordlist* get_next(Wordlist* wordlist);
  * @pre listas de Wordlist existem e possuem pelo menos um item inicializado.
  * @post o proximo item da lista aponta para lista de Wordlist next.
  */
-void insert_wordlist(Wordlist* wordlist, char* word);
+Wordlist* insert_wordlist(Wordlist* wordlist, char* word);
 
 /**
  * Libera memoria alocada da lista de de Wordlist
