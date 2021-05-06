@@ -26,32 +26,30 @@ int main(int argc, char *argv[]) {
 
     calc_PR(graph, pages);
 
-    Page **pages_verified = verificar_consultas(pages, "que e de abacate o Maca abacate uma eu", n_pages, stop_words, n_stop_words, dir);
+    char *buffer;
+    size_t bufsize = 100;
+    int characters;
+    buffer = (char *)malloc(bufsize * sizeof(char));
+    Page *pages_verified[n_pages];
 
-    qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
+    if (buffer == NULL) {
+        perror("Unable to allocate buffer");
+        exit(1);
+    }
 
-    int count = 0;
-    for (int i = 0; i < n_pages; i++) {
-        Page *now = pages_verified[i];
-        if (i != 0 && now)
-            printf(" ");
-        if (now) {
-            count++;
-            printf("%s", get_name_page(now));
-        } else
-            break;
+    characters = getline(&buffer, &bufsize, stdin);
+
+    while (characters >= 0) {
+        buffer[characters - 1] = '\0';
+        verificar_consultas(pages_verified, pages, buffer, n_pages, stop_words, n_stop_words, dir);
+
+        qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
+
+        printf_pages(pages_verified, n_pages);
+        printf_prs(pages_verified, n_pages);
+
+        characters = getline(&buffer, &bufsize, stdin);
     }
-    if (count > 0) printf("\n");
-    for (int i = 0; i < n_pages; i++) {
-        Page *now = pages_verified[i];
-        if (i != 0 && now)
-            printf(" ");
-        if (now)
-            printf("%.8lf", get_page_rank(now));
-        else
-            break;
-    }
-    printf("\n");
 
     //libera a memoria
     for (int i = 0; i < n_stop_words; i++)
@@ -62,7 +60,8 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < n_pages; i++)
         destroy_page(pages[i]);
     free(pages);
-    free(pages_verified);
+
+    free(buffer);
 
     return 0;
 }
