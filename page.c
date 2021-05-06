@@ -79,9 +79,18 @@ int compare_page_name(const void* a, const void* b) {
     * = 0 -> parametros iguais
     * < 0 -> segundo parametro maior que o primeiro
     */
+    /**
+ * verifica se o noh eh vermelho
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post caso possua retorna 0 se nao 1
+ * 
+ * @return arvore atualizada.
+ */
     Page* a1 = *(Page**)a;
     Page* a2 = *(Page**)b;
-
     return strcmp(get_name_page(a1), get_name_page(a2));
 }
 
@@ -132,6 +141,7 @@ static int binary_search(char** stopwords, int lo, int hi, char* word) {
         int mid = lo + (hi - lo) / 2;
 
         // Se a palavra esta no meio da stopwords
+        //printf("stopword: %s -> %d / palavra: %s\n", stopwords[mid], mid, word);
         if (strcasecmp(stopwords[mid], word) == 0)
             return mid;
 
@@ -147,14 +157,15 @@ static int binary_search(char** stopwords, int lo, int hi, char* word) {
     return -1;
 }
 
-Page** verificar_consultas(Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
-    int v = strlen(consulta);
+Page** verificar_consultas(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
     char* a = strdup(consulta);
     int k = 1;
     int str[n_pages];
     char temp[256];
     char* word;
     int i = 0;
+    size_t buffer_size = 100;
+    char* buffer_page = (char*)malloc(sizeof(char) * buffer_size);
 
     for (int i = 0; i < n_pages; i++) {
         str[i] = 0;
@@ -174,49 +185,44 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char** stop
         wordlist = start;
 
         RBT* rbt = NULL;
-        int has_all_words = 0;
+        int has_all_words = 1;
 
         char* directory = file_name(default_directory, page[i]->nome_pagina, 1);
         FILE* arquivo = fopen(directory, "r");
-        //         fseek(arquivo, 0, SEEK_END);
-        //         long a = ftell(arquivo);
-        //         printf("%ld\n", a);
-        //         fseek(arquivo, 0, SEEK_SET);
-
-        //         /* grab sufficient memory for the
-        // buffer to hold the text */
-        //         char* buffer = (char*)calloc(a, sizeof(char));
-
-        //         /* memory error */
-        //         if (buffer == NULL)
-        //             exit(1);
-
-        //         /* copy all the text into the buffer */
-        //         fread(buffer, sizeof(char), a, arquivo);
-        //         printf("%s\n", buffer);
-        //         free(buffer);
-
         free(directory);
+
         if (arquivo == NULL) {
             printf("Arquivo não encontrado!\n");
             exit(2);
         }
 
-        while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-            rbt = RBT_insert(rbt, temp);
+        for (int line_size = getline(&buffer_page, &buffer_size, arquivo);
+             arquivo && line_size >= 0; line_size = getline(&buffer_page, &buffer_size, arquivo)) {
+            if (buffer_page[line_size - 1] == '\n')
+                buffer_page[line_size - 1] = '\0';
+
+            word = strtok(buffer_page, " ");
+
+            while (word != NULL) {
+                if (binary_search(stopwords, 0, stopwords_size - 1, word) == -1) {
+                    rbt = RBT_insert(rbt, word);
+                }
+                word = strtok(NULL, " ");
+            }
         }
+        // while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
+        //     if (binary_search(stopwords, 0, stopwords_size, temp) == -1) {
+        //         rbt = RBT_insert(rbt, temp);
+        //     }
+        // }
 
         while (wordlist != NULL) {
             word = get_word(wordlist);
             //verificar se esta na stopwords
             //se a palavra atual for uma stopword, pula para proxima
-            if (binary_search(stopwords, 0, stopwords_size, word) == -1) {
-                if (search(rbt, word)) {
-                    has_all_words = 1;
-                } else {
-                    has_all_words = 0;
-                    break;
-                }
+            if (!search(rbt, word)) {
+                has_all_words = 0;
+                break;
             }
             wordlist = get_next(wordlist);
         }
@@ -229,7 +235,8 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char** stop
 
     destroy_wordlist(start);
     free(a);
-    Page** pages_verified = (Page**)malloc(sizeof(Page*) * n_pages);
+    free(buffer_page);
+
     for (int i = 0; i < n_pages; i++) {
         if (str[i] == 1) {
             pages_verified[i] = page[i];
