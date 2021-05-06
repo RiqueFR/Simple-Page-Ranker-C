@@ -51,33 +51,65 @@ int search(RBT* rbt, char* value);
  * @pre rbt nao null.
  * @post caso possua retorna 0 se nao 1
  * 
- * @return arvore atualizada.
+ * @return int.
  */
 int is_red(RBT* rbt);
 
-/*
-
-*/
+/**
+ * move o noh para a esquerda
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post caso possua retorna 0 se nao 1
+ * 
+ * @return arvore atualizada.
+ */
 RBT* rotate_left(RBT* rbt);
 
-/*
-
-*/
+/**
+ * verifica se o noh eh vermelho
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post caso possua retorna 0 se nao 1
+ * 
+ * @return arvore atualizada.
+ */
 RBT* rotate_right(RBT* rbt);
 
-/*
-
-*/
+/**
+ * troca as cores do noh
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post troca o noh direita e esquerda 
+ * 
+ */
 void flip_colors(RBT* rbt);
 
-/*
-
-*/
+/**
+ * verifica se o noh eh vermelho
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post imprimir a arvore rubro-negra
+ * 
+ */
 void imprime_rbt(RBT* rbt);
 
-/*
-
-*/
+/**
+ * deleta a arvore
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post rbt liberada
+ * 
+ */
 void RBT_delete(RBT* rbt);
 
 #endif
