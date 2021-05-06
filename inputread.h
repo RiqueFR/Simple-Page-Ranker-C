@@ -16,4 +16,8 @@ char **input_read_stopwords(char *dir, int n_stopwords);
 
 Graph *input_read_graph(char *dir, int n_pages, Page **pages);
 
+void printf_pages(Page **pages, int size);
+
+void printf_prs(Page **pages, int size);
+
 #endif

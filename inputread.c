@@ -142,11 +142,11 @@ Graph *input_read_graph(char *dir, int n_pages, Page **pages) {
     char name_link[300];
     int i = 0;
     while (fscanf(graph_file, "%s %d", name, &size) == 2) {
-        Page *page = find_page(pages, 0, n_pages, name);
+        Page *page = find_page(pages, 0, n_pages - 1, name);
         set_n_links(page, size);
         for (int i = 0; i < size; i++) {
             fscanf(graph_file, "%s", name_link);
-            Page *link = find_page(pages, 0, n_pages, name_link);
+            Page *link = find_page(pages, 0, n_pages - 1, name_link);
             insert_page_link(page, link);
         }
     }
@@ -157,4 +157,32 @@ Graph *input_read_graph(char *dir, int n_pages, Page **pages) {
     free(dir_graph);
 
     return graph;
+}
+
+void printf_pages(Page **pages, int size) {
+    int count = 0;
+    for (int i = 0; i < size; i++) {
+        Page *now = pages[i];
+        if (i != 0 && now)
+            printf(" ");
+        if (now) {
+            count++;
+            printf("%s", get_name_page(now));
+        } else
+            break;
+    }
+    if (count > 0) printf("\n");
+}
+
+void printf_prs(Page **pages, int size) {
+    for (int i = 0; i < size; i++) {
+        Page *now = pages[i];
+        if (i != 0 && now)
+            printf(" ");
+        if (now)
+            printf("%.8lf", get_page_rank(now));
+        else
+            break;
+    }
+    printf("\n");
 }
