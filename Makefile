@@ -1,3 +1,4 @@
+
 compile:
 	gcc -o trab3 main.c graph.c page.c rbt.c wordlist.c inputread.c -lm
 
@@ -32,7 +33,7 @@ run_testePTBR:
 	./trab3 ./entradas/testePTBR/
 
 valgrind:
-	valgrind --leak-check=full --show-leak-kinds=all -s ./trab3 entradas/TesteProfessor/
+	valgrind --leak-check=full --show-leak-kinds=all -s ./trab3 ./entradas/teste100_2/
 
 clean:
 	rm trab3
