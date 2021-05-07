@@ -4,6 +4,12 @@
 
 #include "graph.h"
 #include "inputread.h"
+/*Inicializa um grafo
+ * inputs: quantidade de vertices e um vetor de pages
+ * output: ponteiro para a grafo inicializado
+ * pre-condicao: inteiro e pages existem
+ * pos-condicao: grafo de retorno existe
+ */
 #include "page.h"
 
 int compare_word(const void *a, const void *b);
@@ -16,14 +22,17 @@ int main(int argc, char *argv[]) {
     }
     char *dir = argv[1];
 
+    //leituras/inputs
     int n_pages = input_read_num_pages(dir);
     Page **pages = input_read_page(dir, n_pages);
     Graph *graph = input_read_graph(dir, n_pages, pages);
     int n_stop_words = input_read_num_stopwords(dir);
     char **stop_words = input_read_stopwords(dir, n_stop_words);
 
+    //ordenar paginas em ordem alfabetica
     qsort(stop_words, n_stop_words, sizeof(char *), compare_word);
 
+    //calcula PR das paginas
     calc_PR(graph, pages);
 
     char *buffer;
@@ -37,14 +46,17 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    //para cada linha inserida, verificamos se a consulta esta nos arquivos
     characters = getline(&buffer, &bufsize, stdin);
-
     while (characters >= 0) {
         buffer[characters - 1] = '\0';
-        verificar_consultas(pages_verified, pages, buffer, n_pages, stop_words, n_stop_words, dir);
+        //verifica se alguma pagina tem todas palavras da consulta
+        verify_query(pages_verified, pages, buffer, n_pages, stop_words, n_stop_words, dir);
 
+        //ordena em quesito de PR as paginas em que foram encontradas as palavras
         qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
 
+        //imprime resultados
         printf_pages(pages_verified, n_pages);
         printf_prs(pages_verified, n_pages);
 

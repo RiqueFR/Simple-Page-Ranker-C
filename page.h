@@ -67,8 +67,20 @@ void insert_page_link(Page* page, Page* link);
  */
 Page* search_link(Page* page, Page** pages, int* i, int n_pages);
 
+/*Compara o nome da pagina
+ * inputs: void
+ * output: int com o valor se iguala ou nao o nome
+ * pre-condicao: passar como referencia o tipo pois esta como void
+ * pos-condicao: retornar -1 ou 1 ou 0
+ */
 int compare_page_name(const void* a, const void* b);
 
+/*Compara o nome da pagina
+ * inputs: void
+ * output: int com o valor se iguala ou nao o rank
+ * pre-condicao: passar como referencia o tipo pois esta como void
+ * pos-condicao: retornar -1 ou 1 ou 0
+ */
 int compare_page_rank(const void* a, const void* b);
 
 /*Imprime um page
@@ -87,7 +99,7 @@ void print_page(Page* page);
  */
 void destroy_page(Page* page);
 
-Page** verificar_consultas(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* dir);
+Page** verify_query(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* dir);
 
 /*Busca uma page em uma lista de pages
  * inputs: uma page, uma lista de pages e dois inteiros

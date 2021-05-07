@@ -18,6 +18,10 @@ struct page {
 
 Page* init_page(char* nome) {
     Page* page = (Page*)malloc(sizeof(Page));
+    if (page == NULL) {
+        printf("Erro de alocação de pagina\n");
+        exit(2);
+    }
     page->nome_pagina = strdup(nome);
     page->n = 0;
     return page;
@@ -157,7 +161,7 @@ static int binary_search(char** stopwords, int lo, int hi, char* word) {
     return -1;
 }
 
-Page** verificar_consultas(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
+Page** verify_query(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
     char* a = strdup(consulta);
     int k = 1;
     int str[n_pages];
@@ -210,11 +214,6 @@ Page** verificar_consultas(Page** pages_verified, Page** page, char* consulta, i
                 word = strtok(NULL, " ");
             }
         }
-        // while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-        //     if (binary_search(stopwords, 0, stopwords_size, temp) == -1) {
-        //         rbt = RBT_insert(rbt, temp);
-        //     }
-        // }
 
         while (wordlist != NULL) {
             word = get_word(wordlist);
