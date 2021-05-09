@@ -231,16 +231,18 @@ void printf_pages(Page **pages, int size) {
 }
 
 void printf_prs(Page **pages, int size) {
+    int valid = 0;
     for (int i = 0; i < size; i++) {
         Page *now = pages[i];
         if (i != 0 && now)
             printf(" ");
-        if (now)
+        if (now) {
+            valid = 1;
             printf("%.8lf", get_page_rank(now));
-        else
+        } else
             break;
     }
-    printf("\n");
+    if (valid > 0) printf("\n");
 }
 
 static void remove_buffer_line_breaker(char *buffer, int size) {
