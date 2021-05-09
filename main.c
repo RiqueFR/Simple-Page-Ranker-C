@@ -4,12 +4,6 @@
 
 #include "graph.h"
 #include "inputread.h"
-/*Inicializa um grafo
- * inputs: quantidade de vertices e um vetor de pages
- * output: ponteiro para a grafo inicializado
- * pre-condicao: inteiro e pages existem
- * pos-condicao: grafo de retorno existe
- */
 #include "page.h"
 
 int compare_word(const void *a, const void *b);
