@@ -33,7 +33,7 @@ run_testePTBR:
 	./trab3 ./entradas/testePTBR/
 
 valgrind:
-	valgrind --leak-check=full --show-leak-kinds=all -s ./trab3 ./entradas/teste100_2/ < palavras.txt
+	valgrind --leak-check=full --show-leak-kinds=all -s ./trab3 ./entradas/teste100_2/
 
 clean:
 	rm trab3
