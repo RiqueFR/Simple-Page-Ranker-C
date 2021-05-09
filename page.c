@@ -18,6 +18,10 @@ struct page {
 
 Page* init_page(char* nome) {
     Page* page = (Page*)malloc(sizeof(Page));
+    if (page == NULL) {
+        printf("Erro de alocação de pagina\n");
+        exit(2);
+    }
     page->nome_pagina = strdup(nome);
     page->n = 0;
     return page;
@@ -79,9 +83,18 @@ int compare_page_name(const void* a, const void* b) {
     * = 0 -> parametros iguais
     * < 0 -> segundo parametro maior que o primeiro
     */
+    /**
+ * verifica se o noh eh vermelho
+ * 
+ * @param {RBT* rbt} noh da arvore.
+ * 
+ * @pre rbt nao null.
+ * @post caso possua retorna 0 se nao 1
+ * 
+ * @return arvore atualizada.
+ */
     Page* a1 = *(Page**)a;
     Page* a2 = *(Page**)b;
-
     return strcmp(get_name_page(a1), get_name_page(a2));
 }
 
@@ -127,14 +140,35 @@ void destroy_page(Page* page) {
     free(page);
 }
 
-Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* default_directory) {
-    int v = strlen(consulta);
+static int binary_search(char** stopwords, int lo, int hi, char* word) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
+
+        // Se a palavra esta no meio da stopwords
+        //printf("stopword: %s -> %d / palavra: %s\n", stopwords[mid], mid, word);
+        if (strcasecmp(stopwords[mid], word) == 0)
+            return mid;
+
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(stopwords[mid], word) > 0)
+            return binary_search(stopwords, lo, mid - 1, word);
+
+        // caso contrario, so pode estar na esquerda
+        return binary_search(stopwords, mid + 1, hi, word);
+    }
+
+    // Se a palavra nao esta presente, retorna -1
+    return -1;
+}
+
+Page** verify_query(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* default_directory) {
     char* a = strdup(consulta);
     int k = 1;
     int str[n_pages];
-    char temp[256];
     char* word;
     int i = 0;
+    size_t buffer_size = 100;
+    char* buffer_page = (char*)malloc(sizeof(char) * buffer_size);
 
     for (int i = 0; i < n_pages; i++) {
         str[i] = 0;
@@ -142,12 +176,13 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
 
     word = strtok(a, " ");
     Wordlist* wordlist = init_wordlist();
-    Wordlist* start = wordlist;
 
     while (word != NULL) {
-        insert_wordlist(wordlist, word);
+        wordlist = insert_wordlist(wordlist, word);
         word = strtok(NULL, " ");
     }
+
+    Wordlist* start = wordlist;
 
     for (int i = 0; i < n_pages; i++) {
         wordlist = start;
@@ -158,23 +193,34 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
         char* directory = file_name(default_directory, page[i]->nome_pagina, 1);
         FILE* arquivo = fopen(directory, "r");
         free(directory);
+
         if (arquivo == NULL) {
             printf("Arquivo não encontrado!\n");
             exit(2);
         }
-        while (arquivo && fscanf(arquivo, "%s", temp) == 1) {
-            head = insert_tst(head, temp);
+
+        for (int line_size = getline(&buffer_page, &buffer_size, arquivo);
+             arquivo && line_size >= 0; line_size = getline(&buffer_page, &buffer_size, arquivo)) {
+            if (buffer_page[line_size - 1] == '\n')
+                buffer_page[line_size - 1] = '\0';
+
+            word = strtok(buffer_page, " ");
+
+            while (word != NULL) {
+                if (binary_search(stopwords, 0, stopwords_size - 1, word) == -1) {
+                    head = insert_tst(head, word);
+                }
+                word = strtok(NULL, " ");
+            }
         }
 
         while (wordlist != NULL) {
             word = get_word(wordlist);
-            if (get_word_tst(head, word)) {
-                wordlist = get_next(wordlist);
-                continue;
-            } else {
+            if (!get_word_tst(head, word)) {
                 has_all_words = 0;
                 break;
             }
+            wordlist = get_next(wordlist);
         }
         if (has_all_words == 1) {
             str[i] = 1;
@@ -182,9 +228,11 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
         fclose(arquivo);
         destroy_tst(head);
     }
+
     destroy_wordlist(start);
     free(a);
-    Page** pages_verified = (Page**)malloc(sizeof(Page*) * n_pages);
+    free(buffer_page);
+
     for (int i = 0; i < n_pages; i++) {
         if (str[i] == 1) {
             pages_verified[i] = page[i];
@@ -195,20 +243,22 @@ Page** verificar_consultas(Page** page, char* consulta, int n_pages, char* defau
     return pages_verified;
 }
 
-Page* find_page(Page** pages, int size, char* name_page) {
-    int hi = size, lo = 0;
-    int cmp;
+Page* find_page(Page** pages, int lo, int hi, char* name_page) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
 
-    do {
-        cmp = strcmp(name_page, get_name_page(pages[(hi + lo) / 2]));
+        // Se a pagina esta no meio das paginas
+        if (strcasecmp(get_name_page(pages[mid]), name_page) == 0)
+            return pages[mid];
 
-        if (cmp == 0) break;
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(get_name_page(pages[mid]), name_page) > 0)
+            return find_page(pages, lo, mid - 1, name_page);
 
-        if (strcmp(name_page, get_name_page(pages[(hi + lo) / 2])) > 0)
-            lo = (hi + lo) / 2;
-        else
-            hi = (hi + lo) / 2;
-    } while (cmp != 0);
+        // caso contrario, so pode estar na esquerda
+        return find_page(pages, mid + 1, hi, name_page);
+    }
 
-    return pages[(hi + lo) / 2];
+    // Se a pagina nao esta presente, retorna NULL
+    return NULL;
 }

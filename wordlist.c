@@ -26,15 +26,16 @@ Wordlist* get_next(Wordlist* wordlist) {
         return wordlist->next;
 }
 
-void insert_wordlist(Wordlist* wordlist, char* word) {
+Wordlist* insert_wordlist(Wordlist* wordlist, char* word) {
     if (wordlist->word == NULL) {
         wordlist->word = strdup(word);
-        return;
+        wordlist->next = NULL;
+        return wordlist;
     }
     Wordlist* next = (Wordlist*)malloc(sizeof(Wordlist));
     next->word = strdup(word);
-    next->next = NULL;
-    wordlist->next = next;
+    next->next = wordlist;
+    return next;
 }
 
 void destroy_wordlist(Wordlist* wordlists) {

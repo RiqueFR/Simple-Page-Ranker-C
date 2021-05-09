@@ -61,14 +61,20 @@ static double sum_j_e_in_i(Page* page, Page** pages, double* PR_bef, int size) {
     return soma;
 }
 
+static double module(double val) {
+    if (val < 0)
+        val *= -1;
+    return val;
+}
+
 static double calc_Ek(double* PR, double* PR_bef, int size) {
     double Ek = 0;
     for (int i = 0; i < size; i++) {
         double aux = PR[i] - PR_bef[i];
-        Ek += aux * aux;
+        Ek += module(aux);
     }
 
-    Ek = sqrt(Ek);
+    Ek = Ek / size;
     return Ek;
 }
 
