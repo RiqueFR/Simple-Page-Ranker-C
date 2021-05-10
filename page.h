@@ -1,6 +1,8 @@
 #ifndef PAGES_H
 #define PAGES_H
 
+#include "rbt.h"
+
 typedef struct page Page;
 
 /*Inicializa uma pagina
@@ -99,7 +101,7 @@ void print_page(Page* page);
  */
 void destroy_page(Page* page);
 
-Page** verify_query(Page** pages_verified, Page** page, char* consulta, int n_pages, char** stopwords, int stopwords_size, char* dir);
+Page** verify_query(Page** pages_verified, Page** page, char* consulta, int n_pages, RBT** rbt);
 
 /*Busca uma page em uma lista de pages
  * inputs: uma page, uma lista de pages e dois inteiros

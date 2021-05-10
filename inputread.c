@@ -47,9 +47,10 @@ int input_read_num_pages(char *dir) {
     }
 
     // faz a leitura no arquivo index para ver a quantidade de paginas
-    for (int line_size = getline(&buffer, &buffer_size, index_file);
-         line_size >= 0; line_size = getline(&buffer, &buffer_size, index_file)) {
-        n_pages++;
+    while (!feof(index_file)) {
+        int line_size = getline(&buffer, &buffer_size, index_file);
+        if (line_size > 1)
+            n_pages++;
     }
 
     fclose(index_file);
@@ -85,10 +86,14 @@ Page **input_read_page(char *dir, int n_pages) {
         printf("Erro ao alocar memoria da lista de paginas!\n");
         exit(2);
     }
-    for (int line_size = getline(&buffer, &buffer_size, index_file);
-         line_size >= 0; line_size = getline(&buffer, &buffer_size, index_file), i++) {
-        remove_buffer_line_breaker(buffer, line_size);
-        pages[i] = init_page(buffer);
+
+    while (!feof(index_file)) {
+        int line_size = getline(&buffer, &buffer_size, index_file);
+        if (line_size > 1) {
+            remove_buffer_line_breaker(buffer, line_size);
+            pages[i] = init_page(buffer);
+            i++;
+        }
     }
 
     qsort(pages, n_pages, sizeof(Page *), compare_page_name);
@@ -116,9 +121,10 @@ int input_read_num_stopwords(char *dir) {
     }
 
     // faz a leitura no arquivo stopwords para ver a quantidade de stopwords
-    for (int line_size = getline(&buffer, &buffer_size, stopwords_file);
-         line_size >= 0; line_size = getline(&buffer, &buffer_size, stopwords_file)) {
-        n_stopwords++;
+    while (!feof(stopwords_file)) {
+        int line_size = getline(&buffer, &buffer_size, stopwords_file);
+        if (line_size > 1)
+            n_stopwords++;
     }
 
     fclose(stopwords_file);
@@ -149,10 +155,13 @@ char **input_read_stopwords(char *dir, int n_stopwords) {
         exit(2);
     }
 
-    for (int line_size = getline(&buffer, &buffer_size, stopwords_file);
-         line_size >= 0; line_size = getline(&buffer, &buffer_size, stopwords_file), i++) {
-        remove_buffer_line_breaker(buffer, line_size);
-        stop_words[i] = strdup(buffer);
+    while (!feof(stopwords_file)) {
+        int line_size = getline(&buffer, &buffer_size, stopwords_file);
+        if (line_size > 1) {
+            remove_buffer_line_breaker(buffer, line_size);
+            stop_words[i] = strdup(buffer);
+            i++;
+        }
     }
 
     fclose(stopwords_file);
@@ -187,22 +196,24 @@ Graph *input_read_graph(char *dir, int n_pages, Page **pages) {
         exit(2);
     }
 
-    for (int line_size = getline(&buffer, &buffer_size, graph_file);
-         line_size >= 0; line_size = getline(&buffer, &buffer_size, graph_file)) {
-        remove_buffer_line_breaker(buffer, line_size);
+    while (!feof(graph_file)) {
+        int line_size = getline(&buffer, &buffer_size, graph_file);
+        if (line_size > 1) {
+            remove_buffer_line_breaker(buffer, line_size);
 
-        //Pega o nome da coordenada
-        name_page = strtok(buffer, " ");
-        Page *page = find_page(pages, 0, n_pages - 1, name_page);
+            //Pega o nome da coordenada
+            name_page = strtok(buffer, " ");
+            Page *page = find_page(pages, 0, n_pages - 1, name_page);
 
-        //Pega as coodernadas
-        n_links = atoi(strtok(NULL, " "));
-        set_n_links(page, n_links);
-        name_link = strtok(NULL, " ");
-        while (name_link != NULL) {
-            Page *link = find_page(pages, 0, n_pages - 1, name_link);
-            insert_page_link(page, link);
+            //Pega as coodernadas
+            n_links = atoi(strtok(NULL, " "));
+            set_n_links(page, n_links);
             name_link = strtok(NULL, " ");
+            while (name_link != NULL) {
+                Page *link = find_page(pages, 0, n_pages - 1, name_link);
+                insert_page_link(page, link);
+                name_link = strtok(NULL, " ");
+            }
         }
     }
 
@@ -246,7 +257,8 @@ void printf_prs(Page **pages, int size) {
 }
 
 static void remove_buffer_line_breaker(char *buffer, int size) {
-    buffer[size - 1] = '\0';
+    if (buffer[size - 1] == '\n')
+        buffer[size - 1] = '\0';
     if (buffer[size - 2] == '\r')
         buffer[size - 2] = '\0';
 }

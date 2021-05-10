@@ -5,8 +5,30 @@
 #include "graph.h"
 #include "inputread.h"
 #include "page.h"
+#include "rbt.h"
 
 int compare_word(const void *a, const void *b);
+
+static int binary_search(char **stopwords, int lo, int hi, char *word) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
+
+        // Se a palavra esta no meio da stopwords
+        //printf("stopword: %s -> %d / palavra: %s\n", stopwords[mid], mid, word);
+        if (strcasecmp(stopwords[mid], word) == 0)
+            return mid;
+
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(stopwords[mid], word) > 0)
+            return binary_search(stopwords, lo, mid - 1, word);
+
+        // caso contrario, so pode estar na esquerda
+        return binary_search(stopwords, mid + 1, hi, word);
+    }
+
+    // Se a palavra nao esta presente, retorna -1
+    return -1;
+}
 
 int main(int argc, char *argv[]) {
     //Verifica se a quantidade minima de parametros foram passados
@@ -26,6 +48,42 @@ int main(int argc, char *argv[]) {
     //ordenar paginas em ordem alfabetica
     qsort(stop_words, n_stop_words, sizeof(char *), compare_word);
 
+    size_t buffer_page_size = 100;
+    char *buffer_page = (char *)malloc(sizeof(char) * buffer_page_size);
+    char *word;
+    RBT **rbts = (RBT **)malloc(sizeof(RBT *) * n_pages);
+
+    for (int i = 0; i < n_pages; i++) {
+        char *directory = file_name(dir, get_name_page(pages[i]), 1);
+        FILE *arquivo = fopen(directory, "r");
+        free(directory);
+
+        rbts[i] = NULL;
+
+        if (arquivo == NULL) {
+            printf("Arquivo não encontrado!\n");
+            exit(2);
+        }
+
+        for (int line_size = getline(&buffer_page, &buffer_page_size, arquivo);
+             arquivo && line_size >= 0; line_size = getline(&buffer_page, &buffer_page_size, arquivo)) {
+            if (buffer_page[line_size - 1] == '\n')
+                buffer_page[line_size - 1] = '\0';
+
+            word = strtok(buffer_page, " ");
+
+            while (word != NULL) {
+                if (binary_search(stop_words, 0, n_stop_words - 1, word) == -1) {
+                    rbts[i] = RBT_insert(rbts[i], word);
+                }
+                word = strtok(NULL, " ");
+            }
+        }
+        fclose(arquivo);
+    }
+
+    free(buffer_page);
+
     //calcula PR das paginas
     calc_PR(graph, pages);
 
@@ -41,20 +99,22 @@ int main(int argc, char *argv[]) {
     }
 
     //para cada linha inserida, verificamos se a consulta esta nos arquivos
-    characters = getline(&buffer, &bufsize, stdin);
-    while (characters >= 0) {
-        buffer[characters - 1] = '\0';
-        //verifica se alguma pagina tem todas palavras da consulta
-        verify_query(pages_verified, pages, buffer, n_pages, stop_words, n_stop_words, dir);
-
-        //ordena em quesito de PR as paginas em que foram encontradas as palavras
-        qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
-
-        //imprime resultados
-        printf_pages(pages_verified, n_pages);
-        printf_prs(pages_verified, n_pages);
-
+    while (!feof(stdin)) {
         characters = getline(&buffer, &bufsize, stdin);
+        if (characters > 1) {
+            if (buffer[characters - 1] == '\n')
+                buffer[characters - 1] = '\0';
+
+            //verifica se alguma pagina tem todas palavras da consulta
+            verify_query(pages_verified, pages, buffer, n_pages, rbts);
+
+            //ordena em quesito de PR as paginas em que foram encontradas as palavras
+            qsort(pages_verified, n_pages, sizeof(Page *), compare_page_rank);
+
+            //imprime resultados
+            printf_pages(pages_verified, n_pages);
+            printf_prs(pages_verified, n_pages);
+        }
     }
 
     //libera a memoria
@@ -66,6 +126,11 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < n_pages; i++)
         destroy_page(pages[i]);
     free(pages);
+
+    for (int i = 0; i < n_pages; i++) {
+        RBT_delete(rbts[i]);
+    }
+    free(rbts);
 
     free(buffer);
 
