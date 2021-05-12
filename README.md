@@ -8,4 +8,4 @@ Para executar use:
 
 Condições de execução:
 
-- Os arquivos a serem lidos devem ter um \n no final
+- Se a última linha dos arquivos for apenas um caractere, sem um \n o programa não lê essa considera essa linha
