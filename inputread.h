@@ -3,6 +3,7 @@
 
 #include "graph.h"
 #include "page.h"
+#include "rbt.h"
 
 /*Retorna o caminho do diretorio do arquivo
  * inputs: duas strings e um inteiro
@@ -51,6 +52,16 @@ char **input_read_stopwords(char *dir, int n_stopwords);
  * pos-condicao: ponteiro para o grafo de retorno existe
  */
 Graph *input_read_graph(char *dir, int n_pages, Page **pages);
+
+/*Retorna um vetor de RBTs
+ * inputs: uma string, um vetor de pages, um inteiro, um vetor de vetor de char e um inteiro
+ * output: um vetor de de todas as rbts para cada arquivo
+ * pre-condicao: o dir deve ser um diretório válido, vetor de páginas devidamente inicializado,
+ *  número de paginas condizente com o vetor de paginas, stopwords devidamente inicializadas e
+ *  número de stopwords condizentes com o vetor de stopwords
+ * pos-condicao: ponteiro para o vetor de RBTs de retorno existe
+ */
+RBT **input_read_files(char *dir, Page **pages, int n_pages, char **stopwords, int n_stopwords);
 
 /*Imprime os nomes de um vetor de pages
  * inputs: um vetor de pages e o tamanho

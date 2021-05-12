@@ -226,7 +226,69 @@ Graph *input_read_graph(char *dir, int n_pages, Page **pages) {
     return graph;
 }
 
+static int binary_search(char **stopwords, int lo, int hi, char *word) {
+    if (hi >= lo) {
+        int mid = lo + (hi - lo) / 2;
+
+        // Se a palavra esta no meio da stopwords
+        //printf("stopword: %s -> %d / palavra: %s\n", stopwords[mid], mid, word);
+        if (strcasecmp(stopwords[mid], word) == 0)
+            return mid;
+
+        // Se o elemento eh menor que o meio, so pode estar na esquerda
+        if (strcasecmp(stopwords[mid], word) > 0)
+            return binary_search(stopwords, lo, mid - 1, word);
+
+        // caso contrario, so pode estar na esquerda
+        return binary_search(stopwords, mid + 1, hi, word);
+    }
+
+    // Se a palavra nao esta presente, retorna -1
+    return -1;
+}
+
+RBT **input_read_files(char *dir, Page **pages, int n_pages, char **stopwords, int n_stopwords) {
+    size_t buffer_page_size = 100;
+    char *buffer_page = (char *)malloc(sizeof(char) * buffer_page_size);
+    char *word;
+    RBT **rbts = (RBT **)malloc(sizeof(RBT *) * n_pages);
+
+    for (int i = 0; i < n_pages; i++) {
+        char *directory = file_name(dir, get_name_page(pages[i]), 1);
+        FILE *file = fopen(directory, "r");
+        free(directory);
+
+        rbts[i] = NULL;
+
+        if (file == NULL) {
+            printf("Arquivo não encontrado!\n");
+            exit(2);
+        }
+
+        while (!feof(file)) {
+            int line_size = getline(&buffer_page, &buffer_page_size, file);
+            if (line_size <= 1) continue;
+            remove_buffer_line_breaker(buffer_page, line_size);
+
+            word = strtok(buffer_page, " ");
+
+            while (word != NULL) {
+                if (binary_search(stopwords, 0, n_stopwords - 1, word) == -1) {
+                    rbts[i] = RBT_insert(rbts[i], word);
+                }
+                word = strtok(NULL, " ");
+            }
+        }
+        fclose(file);
+    }
+
+    free(buffer_page);
+
+    return rbts;
+}
+
 void printf_pages(Page **pages, int size) {
+    printf("pages:");
     int count = 0;
     for (int i = 0; i < size; i++) {
         Page *now = pages[i];
@@ -238,10 +300,11 @@ void printf_pages(Page **pages, int size) {
         } else
             break;
     }
-    if (count > 0) printf("\n");
+    printf("\n");
 }
 
 void printf_prs(Page **pages, int size) {
+    printf("pr:");
     int valid = 0;
     for (int i = 0; i < size; i++) {
         Page *now = pages[i];
@@ -253,12 +316,14 @@ void printf_prs(Page **pages, int size) {
         } else
             break;
     }
-    if (valid > 0) printf("\n");
+    printf("\n");
 }
 
 static void remove_buffer_line_breaker(char *buffer, int size) {
+    if (size < 1) return;
     if (buffer[size - 1] == '\n')
         buffer[size - 1] = '\0';
-    if (buffer[size - 2] == '\r')
-        buffer[size - 2] = '\0';
+    if (size > 1)
+        if (buffer[size - 2] == '\r')
+            buffer[size - 2] = '\0';
 }
